@@ -1,36 +1,42 @@
 from loaders.google_trace_loader import TraceDataset
-from schedulers.rr_core import run_rr
-from monitoring.runtime_monitor import RuntimeMonitor
+from environment.scheduler_env import SchedulerEnv
 
 dataset = TraceDataset(
     "data/raw/part-00000-of-00500.csv"
 )
 
-
 dataset.load_once()
 
+env = SchedulerEnv(dataset)
 
-window = dataset.sample_window(1000)
+state = env.reset()
 
-print(dataset.statistics(window))
+print("Initial State")
 
-results = run_rr(
-    window,
-    quantum=8
-)
+print(state)
 
-monitor = RuntimeMonitor()
+next_state, reward, done, info = env.step(3)
 
-state = monitor.extract_state(results)
+print()
 
-print("RL State:", state)
+print("Quantum")
 
-print("\n===== Runtime Statistics =====")
+print(env.action_to_quantum(3))
 
-print(f"Average Queue Length : {results['avg_queue_length']:.2f}")
+print()
 
-print(f"Maximum Queue Length : {results['max_queue_length']}")
+print("Next State")
 
-print(f"Runtime CPU Utilization : {results['runtime_cpu_utilization']:.2f}")
+print(next_state)
 
-print(f"Scheduler Cycles : {results['scheduler_cycles']}")
+print()
+
+print("Reward")
+
+print(reward)
+
+print()
+
+print("Done")
+
+print(done)

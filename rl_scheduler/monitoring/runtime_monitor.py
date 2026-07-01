@@ -60,6 +60,5 @@ class RuntimeMonitor:
             queue_bucket,
             waiting_bucket,
             response_bucket,
-            cpu_bucket,
             context_bucket
         )
