@@ -247,3 +247,46 @@ class TraceDataset:
             "priority_distribution":
                 priorities
         }
+
+        # ---------------------------------------------------
+    # Workload Features
+    # ---------------------------------------------------
+
+    def workload_features(self, processes):
+        """
+        Compute workload characteristics for the sampled window.
+
+        These features are observable before scheduling and
+        are used as the RL state.
+        """
+
+        if len(processes) == 0:
+            return {}
+
+        avg_cpu_request = (
+            sum(p.cpu_request for p in processes)
+            / len(processes)
+        )
+
+        avg_memory_request = (
+            sum(p.memory_request for p in processes)
+            / len(processes)
+        )
+
+        avg_priority = (
+            sum(p.priority for p in processes)
+            / len(processes)
+        )
+
+        queue_length = len(processes)
+
+        return {
+
+            "queue_length": queue_length,
+
+            "avg_cpu_request": avg_cpu_request,
+
+            "avg_memory_request": avg_memory_request,
+
+            "avg_priority": avg_priority
+        }

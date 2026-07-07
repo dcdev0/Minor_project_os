@@ -1,42 +1,91 @@
 from loaders.google_trace_loader import TraceDataset
 from environment.scheduler_env import SchedulerEnv
+from rl.q_learning_agent import QLearningAgent
 
-dataset = TraceDataset(
-    "data/raw/part-00000-of-00500.csv"
-)
+from training.train import train
+from evaluation.evaluate import Evaluator
+from evaluation.plots import Plotter
 
+# ----------------------------------
+# CHANGE ONLY THIS
+# ----------------------------------
+
+MODE = "evaluate"
+# MODE = "train"
+
+# ----------------------------------
+
+DATASET = "data/raw/part-00000-of-00500.csv"
+
+dataset = TraceDataset(DATASET)
 dataset.load_once()
 
-env = SchedulerEnv(dataset)
+env = SchedulerEnv(
+    dataset,
+    window_size=1000
+)
 
-state = env.reset()
+agent = QLearningAgent(
+    state_bins=(5, 5, 5, 5),
+    num_actions=env.num_actions()
+)
 
-print("Initial State")
+# ==================================
+# TRAIN
+# ==================================
 
-print(state)
+if MODE == "train":
 
-next_state, reward, done, info = env.step(3)
+    history = train(
+        env,
+        agent,
+        episodes=1000
+    )
 
-print()
+    agent.save(
+        "saved_models/q_table.npy"
+    )
 
-print("Quantum")
+    plotter = Plotter()
 
-print(env.action_to_quantum(3))
+    plotter.plot_training(
+        history
+    )
 
-print()
+# ==================================
+# EVALUATE
+# ==================================
 
-print("Next State")
+elif MODE == "evaluate":
 
-print(next_state)
+    agent.load(
+        "saved_models/q_table.npy"
+    )
 
-print()
+    evaluator = Evaluator(
+        dataset,
+        env,
+        agent
+    )
 
-print("Reward")
+    results = evaluator.evaluate(
+        num_windows=50
+    )
 
-print(reward)
+    print("\n===== RESULTS =====\n")
 
-print()
+    for scheduler in results:
 
-print("Done")
+        print(scheduler)
 
-print(done)
+        for k, v in results[scheduler].items():
+
+            print(f"{k}: {v}")
+
+        print()
+
+    plotter = Plotter()
+
+    plotter.plot_comparison(
+        results
+    )

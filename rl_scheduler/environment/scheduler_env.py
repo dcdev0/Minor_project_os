@@ -44,6 +44,51 @@ class SchedulerEnv:
             "throughput_max": float("-inf")
         }
 
+        # -----------------------------------
+    # Discretize Workload State
+    # -----------------------------------
+
+    def discretize_state(self, features):
+        """
+        Convert workload features into a discrete state.
+        """
+
+        def bucket(value, thresholds):
+
+            for i, t in enumerate(thresholds):
+
+                if value <= t:
+                    return i
+
+            return len(thresholds)
+
+        queue_bucket = bucket(
+            features["queue_length"],
+            [250, 500, 750, 1000]
+        )
+
+        cpu_bucket = bucket(
+            features["avg_cpu_request"],
+            [0.02, 0.05, 0.10, 0.20]
+        )
+
+        memory_bucket = bucket(
+            features["avg_memory_request"],
+            [0.02, 0.05, 0.10, 0.20]
+        )
+
+        priority_bucket = bucket(
+            features["avg_priority"],
+            [2, 5, 8, 10]
+        )
+
+        return (
+            queue_bucket,
+            cpu_bucket,
+            memory_bucket,
+            priority_bucket
+        )
+
     # -----------------------------------
     # Reset
     # -----------------------------------
@@ -57,13 +102,13 @@ class SchedulerEnv:
         state
         """
 
-        self.processes = self.dataset.sample_window(
-            self.window_size
-        )
+        self.processes = self.dataset.sample_window(self.window_size)
 
-        # Dummy initial state
+        features = self.dataset.workload_features(self.processes)
 
-        return (0, 0, 0, 0)
+        state = self.discretize_state(features)
+
+        return state
 
     # -----------------------------------
     # Step
@@ -112,7 +157,7 @@ class SchedulerEnv:
 
         return (
 
-            next_state,
+            None,
 
             reward,
 

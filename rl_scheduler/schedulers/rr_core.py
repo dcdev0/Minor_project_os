@@ -7,7 +7,7 @@ import copy
 def run_rr(
     processes,
     quantum=8,
-    context_switch_cost=1
+    context_switch_cost=2
 ):
     """
     Round Robin Scheduler
