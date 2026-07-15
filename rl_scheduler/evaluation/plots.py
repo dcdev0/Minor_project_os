@@ -1,7 +1,25 @@
+import os
 import matplotlib.pyplot as plt
 
 
 class Plotter:
+
+    def __init__(self, save_dir="plots"):
+        """
+        Create the directory where all plots will be saved.
+        """
+        self.save_dir = save_dir
+        os.makedirs(self.save_dir, exist_ok=True)
+
+    def _save_plot(self, filename):
+        """
+        Save the current figure to the plots directory.
+        """
+        plt.savefig(
+            os.path.join(self.save_dir, filename),
+            dpi=300,
+            bbox_inches="tight"
+        )
 
     def plot_training(self, history):
 
@@ -15,7 +33,7 @@ class Plotter:
         plt.tight_layout()
         plt.show()
 
-        # Quantum
+        # Selected Quantum
         plt.figure(figsize=(8, 5))
         plt.plot(history["selected_quantums"])
         plt.title("Selected Quantum vs Episode")
@@ -116,17 +134,33 @@ class Plotter:
 
             plt.title(title)
 
+            plt.xlabel("Scheduler")
+
+            plt.ylabel(title)
+
             plt.xticks(rotation=45)
+
+            plt.grid(axis="y", linestyle="--", alpha=0.5)
 
             plt.tight_layout()
 
+            filename = (
+                title.lower()
+                .replace(" ", "_")
+                .replace("/", "_")
+                + ".png"
+            )
+
+            self._save_plot(filename)
+
             plt.show()
 
+        # RL Quantum Distribution
         plt.figure(figsize=(8, 5))
 
         plt.hist(
             results["RL"]["selected_quantums"],
-            bins=[2, 4, 6, 8, 12, 16, 18],
+            bins=len(set(results["RL"]["selected_quantums"])),
             rwidth=0.8
         )
 
@@ -137,5 +171,9 @@ class Plotter:
         plt.ylabel("Frequency")
 
         plt.grid(True)
+
+        plt.tight_layout()
+
+        self._save_plot("rl_selected_quantum_distribution.png")
 
         plt.show()

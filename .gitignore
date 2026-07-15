@@ -1,2 +1,4 @@
 baseline/plots/
+rl_scheduler/plots/
+rl_scheduler/plots_set*/
 __pycache__/

@@ -1,6 +1,7 @@
 import csv
 import random
 import copy
+import statistics
 
 from models.process import Process
 
@@ -94,10 +95,22 @@ class TraceDataset:
 
                     # Estimated CPU burst
 
-                    burst_time = max(
-                        5,
-                        int(cpu_request * 500)
-                    )
+                    if cpu_request < 0.02:
+                        burst = random.randint(2, 10)
+
+                    elif cpu_request < 0.05:
+                        burst = random.randint(10, 30)
+
+                    elif cpu_request < 0.10:
+                        burst = random.randint(30, 80)
+
+                    elif cpu_request < 0.20:
+                        burst = random.randint(80, 150)
+
+                    else:
+                        burst = random.randint(150, 300)
+
+                    burst_time = burst
 
                     process = Process(
                         pid=task_id,
@@ -263,6 +276,16 @@ class TraceDataset:
         if len(processes) == 0:
             return {}
 
+        bursts = [p.burst_time for p in processes]
+
+        average_burst = sum(bursts) / len(bursts)
+
+        burst_std = statistics.stdev(bursts)
+
+        short_jobs = sum(b <= 20 for b in bursts) / len(bursts)
+
+        long_jobs = sum(b >= 100 for b in bursts) / len(bursts)
+
         avg_cpu_request = (
             sum(p.cpu_request for p in processes)
             / len(processes)
@@ -288,5 +311,13 @@ class TraceDataset:
 
             "avg_memory_request": avg_memory_request,
 
-            "avg_priority": avg_priority
+            "avg_priority": avg_priority,
+
+            "avg_burst": average_burst,
+
+            "burst_std": burst_std,
+
+            "short_ratio": short_jobs,
+
+            "long_ratio": long_jobs
         }

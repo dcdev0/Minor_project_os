@@ -15,7 +15,7 @@ class SchedulerEnv:
     # Action Space
     # -----------------------------
 
-    ACTIONS = [2, 4, 6, 8, 12, 16]
+    ACTIONS = [4, 6, 8, 10, 12, 14, 16]
 
     def __init__(self, dataset, window_size=1000):
 
@@ -62,31 +62,35 @@ class SchedulerEnv:
 
             return len(thresholds)
 
-        queue_bucket = bucket(
-            features["queue_length"],
-            [250, 500, 750, 1000]
+        avg_burst_bucket = bucket(
+            features["avg_burst"],
+            [20, 50, 100, 200]
         )
 
-        cpu_bucket = bucket(
-            features["avg_cpu_request"],
-            [0.02, 0.05, 0.10, 0.20]
+        burst_std_bucket = bucket(
+            features["burst_std"],
+            [10, 30, 60, 100]
         )
 
-        memory_bucket = bucket(
-            features["avg_memory_request"],
-            [0.02, 0.05, 0.10, 0.20]
+        short_ratio_bucket = bucket(
+            features["short_ratio"],
+            [0.2, 0.4, 0.6, 0.8]
         )
 
-        priority_bucket = bucket(
-            features["avg_priority"],
-            [2, 5, 8, 10]
+        long_ratio_bucket = bucket(
+            features["long_ratio"],
+            [0.1, 0.3, 0.5, 0.7]
         )
 
         return (
-            queue_bucket,
-            cpu_bucket,
-            memory_bucket,
-            priority_bucket
+            avg_burst_bucket,
+
+            burst_std_bucket,
+
+            short_ratio_bucket,
+
+            long_ratio_bucket
+
         )
 
     # -----------------------------------
